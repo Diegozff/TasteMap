@@ -72,18 +72,21 @@ export default function TasteMap() {
   const [imageFile, setImageFile] = useState(null)
   const [imagePreview, setImagePreview] = useState(null)
   const [dishResult, setDishResult] = useState(null)
+  const [errorMsg, setErrorMsg] = useState(null)
 
   async function handleImageSelected(file) {
     const preview = URL.createObjectURL(file)
     setImageFile(file)
     setImagePreview(preview)
+    setErrorMsg(null)
     setScreen('loading')
 
     try {
       const result = await analyzeDish(file, dietaryProfile)
       setDishResult(result)
       setScreen('result')
-    } catch {
+    } catch (err) {
+      setErrorMsg(err.message || 'Ocurrió un error al analizar el plato.')
       setScreen('capture')
     }
   }
@@ -111,11 +114,19 @@ export default function TasteMap() {
         {/* Scrollable content */}
         <div className="flex-1 overflow-y-auto scrollbar-hide">
           {screen === 'capture' && activeTab === 'scan' && (
-            <CameraUpload
-              onImageSelected={handleImageSelected}
-              dietaryProfile={dietaryProfile}
-              onDietaryChange={setDietaryProfile}
-            />
+            <>
+              {errorMsg && (
+                <div className="mx-5 mt-5 px-4 py-3 rounded-2xl bg-chili/10 border border-chili/20 flex items-start gap-3">
+                  <span className="text-chili text-lg leading-none mt-0.5">⚠</span>
+                  <p className="text-chili text-sm font-medium leading-snug">{errorMsg}</p>
+                </div>
+              )}
+              <CameraUpload
+                onImageSelected={handleImageSelected}
+                dietaryProfile={dietaryProfile}
+                onDietaryChange={setDietaryProfile}
+              />
+            </>
           )}
           {screen === 'capture' && activeTab === 'map' && <MapPlaceholder />}
           {screen === 'capture' && activeTab === 'profile' && <ProfilePlaceholder />}
